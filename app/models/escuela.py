@@ -15,3 +15,6 @@ class Escuela(Base):
     bloques = relationship(
         "BloqueHorario", back_populates="escuela", cascade="all, delete-orphan"
     )
+    grados = relationship(
+        "Grado", back_populates="escuela", cascade="all, delete-orphan"
+    )
