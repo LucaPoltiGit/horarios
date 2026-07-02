@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 
-from app.api import bloques, escuelas
+from app.api.router import router
 
 app = FastAPI(title="Generador de Horarios Escolares")
 
-app.include_router(escuelas.router)
-app.include_router(bloques.router)
+app.include_router(router)
 
 
 @app.get("/salud")
