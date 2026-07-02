@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 
@@ -10,3 +11,7 @@ class Escuela(Base):
     nombre = Column(String, nullable=False)
     tipo = Column(String, nullable=False)
     turno = Column(String, nullable=False)
+
+    bloques = relationship(
+        "BloqueHorario", back_populates="escuela", cascade="all, delete-orphan"
+    )
