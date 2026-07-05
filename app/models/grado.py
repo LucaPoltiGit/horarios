@@ -13,3 +13,6 @@ class Grado(Base):
     maestra = Column(String, nullable=True)
 
     escuela = relationship("Escuela", back_populates="grados")
+    materias_grado = relationship(
+        "MateriaGrado", back_populates="grado", cascade="all, delete-orphan"
+    )

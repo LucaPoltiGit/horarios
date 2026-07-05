@@ -18,3 +18,6 @@ class Escuela(Base):
     grados = relationship(
         "Grado", back_populates="escuela", cascade="all, delete-orphan"
     )
+    materias = relationship(
+        "Materia", back_populates="escuela", cascade="all, delete-orphan"
+    )
