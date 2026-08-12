@@ -11,6 +11,7 @@ class Grado(Base):
     escuela_id = Column(Integer, ForeignKey("escuelas.id"), nullable=False)
     nombre = Column(String, nullable=False)
     maestra = Column(String, nullable=True)
+    dia_cobertura = Column(Integer, nullable=True)  # 1=lunes ... 5=viernes, o None
 
     escuela = relationship("Escuela", back_populates="grados")
     materias_grado = relationship(
