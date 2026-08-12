@@ -33,6 +33,9 @@ class DatosSolver:
     docentes_por_materia: dict[int, list[Docente]] = field(default_factory=dict)
     # disponibilidad: docente_id -> set de (dia, bloque_id) donde puede dar
     disponibilidad: dict[int, set[tuple[int, int]]] = field(default_factory=dict)
+    # dia_cobertura: grado_id -> dia_semana en que ese grado necesita cobertura
+    # de salida (solo incluye grados que la tienen configurada)
+    dia_cobertura: dict[int, int] = field(default_factory=dict)
 
 
 def preparar_datos(sesion: Session, escuela_id: int) -> DatosSolver:
@@ -52,6 +55,9 @@ def preparar_datos(sesion: Session, escuela_id: int) -> DatosSolver:
     # 2. Requerimientos: que materia y cuantos modulos necesita cada grado
     grados = sesion.query(Grado).filter(Grado.escuela_id == escuela_id).all()
     ids_grados = [g.id for g in grados]
+    for grado in grados:
+        if grado.dia_cobertura is not None:
+            datos.dia_cobertura[grado.id] = grado.dia_cobertura
     asignaciones_materia = (
         sesion.query(MateriaGrado)
         .filter(MateriaGrado.grado_id.in_(ids_grados))
