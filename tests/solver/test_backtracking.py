@@ -3,7 +3,7 @@ import pytest
 from app.models.bloque_horario import BloqueHorario
 from app.models.docente import Docente
 from app.solver.backtracking import SolverError, resolver
-from app.solver.datos import DatosSolver, RequerimientoMateria
+from app.solver.datos import DIAS_SEMANA, DatosSolver, RequerimientoMateria
 
 
 def _bloque(id_, orden):
@@ -89,6 +89,57 @@ def test_lanza_error_si_no_hay_solucion():
 
     with pytest.raises(SolverError):
         resolver(datos)
+
+
+def test_cubre_dia_de_cobertura_si_hay_lugar():
+    """El grado 1 tiene dia_cobertura=2 (martes). Hay un solo modulo semanal
+    y el docente esta disponible toda la semana: el Enfoque A debe hacer que
+    el solver lo ubique en (martes, ultimo bloque)."""
+    b1, b2 = _bloque(1, 1), _bloque(2, 2)  # b2 es el de mayor orden (ultimo)
+    doc = _docente(10, materia_id=100, cargo=20)
+
+    datos = DatosSolver(
+        escuela_id=1,
+        bloques_modulo=[b1, b2],
+        requerimientos=[
+            RequerimientoMateria(grado_id=1, materia_id=100, modulos_semanales=1),
+        ],
+        docentes_por_materia={100: [doc]},
+        disponibilidad={
+            10: {(dia, bloque.id) for dia in DIAS_SEMANA for bloque in (b1, b2)}
+        },
+        dia_cobertura={1: 2},
+    )
+
+    resultado = resolver(datos)
+    assert len(resultado) == 1
+    assert resultado[0].dia_semana == 2
+    assert resultado[0].bloque_id == b2.id
+
+
+def test_resuelve_aunque_no_pueda_cubrir_dia_de_cobertura():
+    """El grado 1 tiene dia_cobertura=1 (lunes), pero el docente no esta
+    disponible ese dia. La cobertura es solo una preferencia de orden de
+    busqueda, no una restriccion dura: el solver debe seguir encontrando
+    una solucion valida en otro (dia, bloque)."""
+    b1 = _bloque(1, 1)
+    doc = _docente(10, materia_id=100, cargo=20)
+
+    datos = DatosSolver(
+        escuela_id=1,
+        bloques_modulo=[b1],
+        requerimientos=[
+            RequerimientoMateria(grado_id=1, materia_id=100, modulos_semanales=1),
+        ],
+        docentes_por_materia={100: [doc]},
+        # Disponible solo el martes, nunca el lunes (dia de cobertura pedido)
+        disponibilidad={10: {(2, 1)}},
+        dia_cobertura={1: 1},
+    )
+
+    resultado = resolver(datos)
+    assert len(resultado) == 1
+    assert resultado[0].dia_semana == 2
 
 
 def test_respeta_cargo_docente():
